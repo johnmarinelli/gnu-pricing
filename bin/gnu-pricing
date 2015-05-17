@@ -14,11 +14,30 @@ mkdir -p "$HOME/.gnu-pricing/"
 TOTALCOUNT="0"
 USEDCMDS=`ls -1 "$HOME/.gnu-pricing/" | sed 's@.usage$@@'`
 
+#get the longest command name
+LONGESTCMDNAME="0"
+for cmd in $USEDCMDS
+do
+  CMDSIZE=${#cmd}
+  if [ $CMDSIZE -gt $LONGESTCMDNAME ]
+  then 
+    LONGESTCMDNAME=$CMDSIZE
+  fi
+done
+
+#get difference between longest command name and 'command' string
+CMDNAMEPADDING=$(($LONGESTCMDNAME - 7))
+
+#store padding for spaces and dashes
+printf -v string "%*s" $CMDNAMEPADDING ' ' '' 
+SPACES=${string// / }
+DASHES=${string// /-}
+
 #print header
 echo -e "Overall GNU command usage"
 echo -e ""
-echo -e "command\tusage\tcost"
-echo -e "-------\t-----\t----"
+echo -e "command$SPACES usage\tcost"
+echo -e "-------$DASHES -----\t----"
 
 #get the usage count for each command
 for cmd in $USEDCMDS
@@ -33,8 +52,15 @@ do
         USECOST="0$USECOST"
     fi
 
+    #extend each command name line with appropriate space
+    CMDNAMELENGTH=${#cmd}
+    EXTRASPACES=$(($CMDNAMEPADDING + $LONGESTCMDNAME - $CMDNAMELENGTH))
+    
+    printf -v linestring "%*s" $EXTRASPACES ' ' '' 
+    LINESPACES=${linestring// / }
+
     #print the total usage and cost
-    echo -e "$cmd\t$THISCOUNT\t\$${USECOST::-2}.${USECOST:${#num}-2}"
+    echo -e "$cmd$LINESPACES$THISCOUNT\t\$${USECOST::-2}.${USECOST:${#num}-2}"
 
     #add the usage for this command to the total usage
     TOTALCOUNT=$(( $TOTALCOUNT + $THISCOUNT ))
